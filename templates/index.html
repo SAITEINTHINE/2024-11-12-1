@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Gacha Simulator</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+<div class="container">
+    <h1>Gacha Simulator</h1>
+    <p>Total Pulls: {{ total_pulls }}</p>
+    <p>Total Cost: ¥{{ total_cost }}</p>
+
+    <h3>Results</h3>
+    <ul>
+        {% for rarity, count in results.items() %}
+            <li>{{ rarity }}: {{ count }}</li>
+        {% endfor %}
+    </ul>
+
+    <h3>Pulled Images</h3>
+    <div class="image-grid">
+        {% for image in images %}
+            <img src="{{ url_for('static', filename='images/' + image) }}" alt="Card" class="gacha-image">
+        {% endfor %}
+    </div>
+
+    <a href="{{ url_for('single_pull') }}" class="btn btn-primary">Pull 1 Gacha (¥100)</a>
+    <a href="{{ url_for('eleven_pull') }}" class="btn btn-primary">Pull 11 Gacha (¥1000)</a>
+    <a href="{{ url_for('reset') }}" class="btn btn-danger">Reset</a>
+</div>
+</body>
+</html>
