@@ -1,9 +1,13 @@
 import random
 import os
+import json
 from flask import Flask, render_template, redirect, url_for, session
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
+
+# File for saving results
+RESULTS_FILE = "results.txt"
 
 # Probability distributions for single and 11-pull gachas
 rarity_prob_single = {
@@ -33,8 +37,20 @@ rarity_images = {
 
 sr_plus_characters = [f"Character {i}" for i in range(1, 11)]
 
+# Save cumulative results to a file
+def save_results_to_file(results):
+    with open(RESULTS_FILE, 'w') as file:
+        json.dump(results, file)
+
+# Load cumulative results from a file
+def load_results_from_file():
+    if os.path.exists(RESULTS_FILE):
+        with open(RESULTS_FILE, 'r') as file:
+            return json.load(file)
+    return {rarity: 0 for rarity in rarity_images}
+
 def init_session():
-    session['results'] = {rarity: 0 for rarity in rarity_images}
+    session['results'] = load_results_from_file()
     session['images'] = []
     session['total_pulls'] = 0
     session['total_cost'] = 0
@@ -52,6 +68,7 @@ def pull_gacha(probabilities):
 @app.route('/reset')
 def reset():
     init_session()
+    save_results_to_file(session['results'])  # Reset saved results
     return redirect(url_for('index'))
 
 @app.route('/')
@@ -80,6 +97,10 @@ def single_pull():
 
     session['total_pulls'] += 1
     session['total_cost'] += 100
+
+    # Save updated results to file
+    save_results_to_file(session['results'])
+
     return redirect(url_for('index'))
 
 @app.route('/eleven_pull')
@@ -102,7 +123,13 @@ def eleven_pull():
     session['images'].append(random.choice(rarity_images["SR"]))
     session['total_pulls'] += 11
     session['total_cost'] += 1000
+
+    # Save updated results to file
+    save_results_to_file(session['results'])
+
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
+    if not os.path.exists(RESULTS_FILE):
+        save_results_to_file({rarity: 0 for rarity in rarity_images})
     app.run(debug=True, host='0.0.0.0', port=8080)
